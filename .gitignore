@@ -1,0 +1,6 @@
+*.csv
+*.htm
+*.pyc
+*.zip
+*.env
+*.json

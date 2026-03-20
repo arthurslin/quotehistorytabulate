@@ -42,13 +42,11 @@ def login():
         "safebrowsing.enabled": True,
     }
     )
-    
+
     driver = webdriver.Chrome(
         service=Service(ChromeDriverManager().install()),
         options=chrome_options
     )
-
-
 
     wait = WebDriverWait(driver, 30)
 
@@ -109,7 +107,7 @@ def click_export_button(driver):
     print("✅ Actions button found")
 
     driver.execute_script("arguments[0].scrollIntoView(true);", actions_button)
-    time.sleep(1)
+    time.sleep(2)
 
     # STEP 2: Click Actions (JS click is more reliable for Redwood)
     driver.execute_script("arguments[0].click();", actions_button)
@@ -127,8 +125,24 @@ def click_export_button(driver):
 
     print("✅ Export clicked")
 
+def navigate_history(driver, qid):
+    url = f"https://ontoinnovation.bigmachines.com/commerce/buyside/change_history.jsp?version_id=&action_id=37492901&id={qid}&process_id=36244034"
+    driver.get(url)
+    print("✅ Navigated to history page")
 
-if __name__ == "__main__":
-    driver = login()
-    click_export_button(driver)
-    time.sleep(20)  # wait for download to start
+def download_page(driver, qid):
+    # Get the page source and save as HTML
+    page_html = driver.page_source
+    downloads_path = os.path.abspath("history_downloads")
+    os.makedirs(downloads_path, exist_ok=True)
+    html_file = os.path.join(downloads_path, f"{qid}.htm")
+    
+    with open(html_file, 'w', encoding='utf-8') as f:
+        f.write(page_html)
+    
+    print(f"✅ Downloaded page as {qid}.htm")
+
+# if __name__ == "__main__":
+#     driver = login()
+#     click_export_button(driver)
+#     time.sleep(20)  # wait for download to start
