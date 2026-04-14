@@ -64,31 +64,37 @@ class QuoteItem:
         return f"QuoteItem(quote_number={self.quote_number}, owner={self.owner}, opportunity_number={self.opportunity_number}, version={self.version})"
 
 
-def create_key_dict(csv_path):
+def create_key_dict(excel_path):
     """
-    Create a dictionary from the extracted CSV file.
-    
+    Create a dictionary from the extracted Excel report.
+
     Args:
-        csv_path (str): Path to the CSV file
-        
+        excel_path (str | Path): Path to the Excel file
+
     Returns:
-        dict: Dictionary with ID# as key and QuoteItem as value
+        dict: Dictionary with Transaction BSID as key and QuoteItem as value
     """
-    csv_path = Path(csv_path)
+    excel_path = Path(excel_path)
     key_dict = {}
-    
-    with open(csv_path, 'r') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            if row['Quote Classification'] == 'Sales':
-                id_num = row['ID#']
-                quote_item = QuoteItem(
-                    quote_number=row['Quote Number'],
-                    owner=row['Owner'],
-                    opportunity_number=row['Opportunity Number'],
-                    version=row['Version']
-                )
-                key_dict[id_num] = quote_item
-    
+
+    # Read Excel file
+    df = pd.read_excel(excel_path, engine="openpyxl")
+
+    # Filter Sales rows
+    sales_df = df[df["Quote Classification"] == "Sales"]
+
+    for _, row in sales_df.iterrows():
+        bsid = str(row["Transaction BSID"]).strip()
+
+        quote_item = QuoteItem(
+            quote_number=row["Quote Number"],
+            owner=row["Owner"],
+            opportunity_number=row["Opportunity Number"],
+            version=row["Version Number"] 
+        )
+
+        key_dict[bsid] = quote_item
+
     return key_dict
+
 

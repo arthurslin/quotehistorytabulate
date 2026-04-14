@@ -1,10 +1,11 @@
-from scrapepage import login, click_export_button, navigate_history, download_page
-from extracthash import extract_zip, delete_zip, create_key_dict
+from scrapepage import login, navigate_history, download_page, refresh_reporting_data, downloadqid_report
+from extracthash import create_key_dict
 from parsechangehistory import parse_changehistory_folder
 from cleaner import clean_df
 
 
 import pandas as pd
+import shutil
 import time
 import os
 import glob
@@ -13,19 +14,28 @@ from pathlib import Path
 
 #downlaod report for change mapping
 driver = login()
-click_export_button(driver)
+# click_export_button(driver)
+refresh_reporting_data(driver)
+downloadqid_report(driver) 
+
 time.sleep(10)
 
+# Find the latest xlsx file in the 'key' directory
+xlsx_files = glob.glob('downloads/*.xlsx')
+latest_xlsx = max(xlsx_files, key=os.path.getctime)
+key_dict = create_key_dict(latest_xlsx)
+print(f"✅ Created key dictionary with {len(key_dict)} entries from {latest_xlsx}")
+print(key_dict)
 
-# extract the zip file and delete it
-extract_path = extract_zip('downloads/oraclecpqo.zip', 'key')
-delete_zip('downloads/oraclecpqo.zip')
+
+history_htmls = Path("history_downloads")
 
 
-# Find the latest CSV file in the 'key' directory
-csv_files = glob.glob('key/*.csv')
-latest_csv = max(csv_files, key=os.path.getctime)
-key_dict = create_key_dict(latest_csv)
+if history_htmls.exists():
+    shutil.rmtree(history_htmls)
+
+
+history_htmls.mkdir(exist_ok=True)
 
 
 #download change history pages 
@@ -35,7 +45,7 @@ for key in key_dict.keys():
 
 
 # Now parse the downloaded HTML files and combine with key_dict info
-history_dfs = parse_changehistory_folder(Path("history_downloads"))
+history_dfs = parse_changehistory_folder(history_htmls)
 
 
 # Enrich each history DataFrame with metadata from key_dict and concatenate into a final DataFrame

@@ -142,6 +142,77 @@ def download_page(driver, qid):
     
     print(f"✅ Downloaded page as {qid}.htm")
 
+# Refresh reporting Data Function
+# def refresh_reporting_data(driver):
+
+
+def refresh_reporting_data(driver):
+    url = (
+        "https://ontoinnovation.bigmachines.com/commerce/"
+        "buyside/reports/report_manager.jsp"
+        "?process_id=36244034&from_hp=true&_bm_trail_refresh_=true"
+    )
+
+    driver.get(url)
+    wait = WebDriverWait(driver, 30)
+
+    # This is the ACTUAL clickable element that CPQ listens to
+    refresh_table = wait.until(
+        EC.presence_of_element_located(
+            (By.XPATH, "//table[@aria-label='Refresh Reporting Data']")
+        )
+    )
+
+    # Scroll into view (important for CPQ)
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", refresh_table)
+
+    # Use JS click to bypass CPQ event handling issues
+    driver.execute_script("arguments[0].click();", refresh_table)
+
+    print("✅ Reporting Data Refreshed")
+
+
+# Download qid report 
+
+def downloadqid_report(driver):
+    url = (
+        "https://ontoinnovation.bigmachines.com/commerce/"
+        "buyside/reports/report_builder.jsp"
+        "?report_id=135751070"
+        "&version_id=36282630"
+        "&process_id=36244034"
+        "&folder_id=-1"
+        "&run_report=1"
+    )
+
+    driver.get(url)
+    wait = WebDriverWait(driver, 60)
+
+    # Wait until the results toolbar (Run Report tab) is visible
+    wait.until(
+        EC.presence_of_element_located(
+            (By.XPATH, "//div[contains(@class,'results-buttons')]")
+        )
+    )
+
+    # Locate the REAL Export button (table, not <a>)
+    export_table = wait.until(
+        EC.element_to_be_clickable(
+            (By.XPATH, "//table[@aria-label='Export to Excel']")
+        )
+    )
+
+
+    # Scroll into view (CPQ UI requires this)
+    driver.execute_script(
+        "arguments[0].scrollIntoView({block:'center'});",
+        export_table
+    )
+
+    # Use JS click to trigger CPQ handlers
+    driver.execute_script("arguments[0].click();", export_table)
+    print("✅ Export to Excel clicked")
+
 # if __name__ == "__main__":
 #     driver = login()
 #     click_export_button(driver)
